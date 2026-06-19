@@ -114,14 +114,14 @@
         "loc_5"
       ],
       "settings": {
-        "logo": "shopify://shop_images/truseanewlogo.png",
+        "logo": "shopify://shop_images/image-removebg-preview.png",
         "menu": "main-menu",
         "default_location": "Select Area",
         "whatsapp_number": "+917397468800",
         "show_location_picker": false,
-        "bg_color": "#0e2541",
-        "accent_color": "#3cbfa0",
-        "text_color": "#ffffff",
+        "bg_color": "#EFEFEF",
+        "accent_color": "#14211E",
+        "text_color": "#646464",
         "sticky": true
       }
     }
