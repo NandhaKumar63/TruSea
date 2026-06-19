@@ -114,13 +114,13 @@
         "loc_5"
       ],
       "settings": {
-        "logo": "shopify://shop_images/image-removebg-preview.png",
+        "logo": "shopify://shop_images/TruSea_Flavours_Logo_new2.png",
         "menu": "main-menu",
         "default_location": "Select Area",
         "whatsapp_number": "+917397468800",
         "show_location_picker": false,
-        "bg_color": "#EFEFEF",
-        "accent_color": "#14211E",
+        "bg_color": "#efefef",
+        "accent_color": "#14211e",
         "text_color": "#646464",
         "sticky": true
       }
