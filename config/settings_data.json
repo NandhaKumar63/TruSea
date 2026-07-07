@@ -164,7 +164,7 @@
           "heading_line3": ", Perfectly Cut.",
           "subtext": "Fresh fish, hygienically prepared and perfectly cut, ready for your kitchen and family meals.",
           "cta_text": "Shop Fresh",
-          "cta_url": "",
+          "cta_url": "shopify://collections/limited-catch",
           "video_url": "",
           "show_countdown": false,
           "cutoff_time": "",
@@ -209,7 +209,6 @@
             "type": "category",
             "settings": {
               "collection": "limited-catch",
-              "image": "shopify://shop_images/silver_belly_karapodi_LS.png",
               "name": "Limited Catch",
               "subtitle": "Grab It Before It’s Gone",
               "link": ""
@@ -219,7 +218,6 @@
             "type": "category",
             "settings": {
               "collection": "daily-cooking",
-              "image": "shopify://shop_images/tuna_choora_cut_shapes.png",
               "name": "Daily Cooking",
               "subtitle": "So Fresh, It Wiggles",
               "link": ""
@@ -229,7 +227,6 @@
             "type": "category",
             "settings": {
               "collection": "bestsellers",
-              "image": "shopify://shop_images/black_spot_snapper_manja_sankara_LS_a7a4a747-0881-4705-bb30-de37d405b257.png",
               "name": "Best Sellers",
               "subtitle": "Best of the Best, Curated for You",
               "link": ""
