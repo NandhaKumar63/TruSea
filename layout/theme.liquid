@@ -653,71 +653,65 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 <script>
   (function() {
     function updateCartPreorderState() {
-      // Look for any preorder status element on the page
       var statusEls = document.querySelectorAll('#cart-preorder-status');
       var hasPreorder = false;
-      
+
       statusEls.forEach(function(el) {
         if (el.getAttribute('data-has-preorder') === 'true') {
           hasPreorder = true;
         }
       });
-      
-      // Fallback: if no helper element is found, use the liquid-rendered initial state
+
+      // Fallback: use the liquid-rendered initial state when no marker element is found
       if (statusEls.length === 0) {
         hasPreorder = {{ has_preorder | json }};
       }
-      
+
       if (hasPreorder) {
         document.body.classList.add('cart-has-preorder');
-        
-        // Remove 'disabled' attribute from checkout buttons if any app applied it
+
+        // Re-enable checkout buttons in case the app disabled them
         document.querySelectorAll('button[name="checkout"], input[name="checkout"]').forEach(function(btn) {
-          if (btn.hasAttribute('disabled')) {
-            btn.removeAttribute('disabled');
-            btn.disabled = false;
-          }
+          btn.removeAttribute('disabled');
+          btn.disabled = false;
         });
       } else {
         document.body.classList.remove('cart-has-preorder');
       }
     }
 
-    // Run on DOM load
+    // Debounce to prevent MutationObserver from firing too rapidly
+    var debounceTimer = null;
+    function debouncedUpdate() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(updateCartPreorderState, 50);
+    }
+
+    // Run immediately on script load
     updateCartPreorderState();
 
-    // Monitor DOM updates (AJAX cart updates) to re-evaluate preorder status
-    var observer = new MutationObserver(function() {
-      updateCartPreorderState();
-    });
+    // Re-run on AJAX cart updates by watching the DOM
+    var observer = new MutationObserver(debouncedUpdate);
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Intercept checkout click event during capturing phase to bypass Bird Pickup Delivery validation
+    // ---------------------------------------------------------------
+    // Checkout click interceptor – capturing phase runs BEFORE
+    // Bird/Kite app's bubble-phase listeners, so we redirect first.
+    // ---------------------------------------------------------------
     document.addEventListener('click', function(event) {
       if (!document.body.classList.contains('cart-has-preorder')) return;
-      
-      var checkoutBtn = event.target.closest('[name="checkout"]');
-      if (checkoutBtn) {
-        event.stopPropagation();
-        event.preventDefault();
-        
-        var formId = checkoutBtn.getAttribute('form');
-        var form = formId ? document.getElementById(formId) : (checkoutBtn.form || document.querySelector('form[action="/cart"]'));
-        
-        if (form) {
-          // Shopify checkout requires the parameter 'checkout' to be present.
-          // Since form.submit() doesn't include the submit button's name/value, we append it as a hidden input.
-          if (!form.querySelector('input[name="checkout"]')) {
-            var hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'checkout';
-            hiddenInput.value = 'Checkout';
-            form.appendChild(hiddenInput);
-          }
-          form.submit(); // submit() bypasses form submit listeners (such as Bird Pickup & Delivery validation)
-        }
-      }
-    }, true); // true = run during the capturing phase
+
+      var btn = event.target.closest('[name="checkout"]');
+      if (!btn) return;
+
+      // Stop the app's validation handlers from running
+      event.stopImmediatePropagation();
+      event.preventDefault();
+
+      // Directly navigate to Shopify checkout – simplest and most reliable
+      window.location.href = '/checkout';
+
+    }, true); // capture phase = fires before any bubble-phase app listeners
   })();
 </script>
 </body>
