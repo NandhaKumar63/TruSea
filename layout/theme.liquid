@@ -626,7 +626,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 {%- assign has_preorder = false -%}
 {%- for item in cart.items -%}
   {%- assign tags_string = item.product.tags | join: ',' | downcase -%}
-  {%- if tags_string contains 'preorder' or tags_string contains 'prebook' -%}
+  {%- if tags_string contains 'preorder' or tags_string contains 'prebook' or tags_string contains 'pre-order' or tags_string contains 'pre-book' -%}
     {%- assign has_preorder = true -%}
     {%- break -%}
   {%- endif -%}
@@ -652,6 +652,25 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 <script>
   (function() {
+    function enableCheckoutButtons() {
+      if (!document.body.classList.contains('cart-has-preorder')) return;
+
+      document.querySelectorAll('button[name="checkout"], input[name="checkout"]').forEach(function(btn) {
+        if (btn.disabled || btn.hasAttribute('disabled')) {
+          btn.disabled = false;
+          btn.removeAttribute('disabled');
+        }
+        // Remove tooltips/titles added by validation apps
+        if (btn.hasAttribute('title')) {
+          btn.removeAttribute('title');
+        }
+        // Remove style pointer-events: none if set inline
+        if (btn.style.pointerEvents === 'none') {
+          btn.style.pointerEvents = 'auto';
+        }
+      });
+    }
+
     function updateCartPreorderState() {
       var statusEls = document.querySelectorAll('#cart-preorder-status');
       var hasPreorder = false;
@@ -669,12 +688,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
       if (hasPreorder) {
         document.body.classList.add('cart-has-preorder');
-
-        // Re-enable checkout buttons in case the app disabled them
-        document.querySelectorAll('button[name="checkout"], input[name="checkout"]').forEach(function(btn) {
-          btn.removeAttribute('disabled');
-          btn.disabled = false;
-        });
+        enableCheckoutButtons();
       } else {
         document.body.classList.remove('cart-has-preorder');
       }
@@ -684,7 +698,10 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     var debounceTimer = null;
     function debouncedUpdate() {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(updateCartPreorderState, 50);
+      debounceTimer = setTimeout(function() {
+        updateCartPreorderState();
+        enableCheckoutButtons();
+      }, 50);
     }
 
     // Run immediately on script load
@@ -692,7 +709,10 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
     // Re-run on AJAX cart updates by watching the DOM
     var observer = new MutationObserver(debouncedUpdate);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'title', 'class'] });
+
+    // Fallback interval to ensure the button is always enabled even if MutationObserver misses a microtask/paint frame
+    setInterval(enableCheckoutButtons, 100);
 
     // ---------------------------------------------------------------
     // Checkout click interceptor – capturing phase runs BEFORE
