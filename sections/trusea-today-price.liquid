@@ -42,6 +42,7 @@
 
       <div class="tsp-list" id="tsp-list-{{ section.id }}">
         {%- if section.settings.collection != blank -%}
+          {%- paginate section.settings.collection.products by 250 -%}
           {%- for product in section.settings.collection.products -%}
             {%- assign variant = product.variants.first -%}
             {%- assign is_available = true -%}
@@ -66,6 +67,7 @@
               </span>
             </a>
           {%- endfor -%}
+          {%- endpaginate -%}
         {%- else -%}
           <p class="tsp-empty">Select a collection in the theme editor to display products.</p>
         {%- endif -%}
@@ -358,13 +360,16 @@
 
     if (!listWrap) return;
 
-    var rows = Array.prototype.slice.call(listWrap.querySelectorAll('.tsp-row'));
     var currentStatusFilter = 'all';
     var currentSearch = '';
 
+    function getRows() {
+      return Array.prototype.slice.call(listWrap.querySelectorAll('.tsp-row'));
+    }
+
     function applyFilters() {
       var visibleCount = 0;
-      rows.forEach(function (row) {
+      getRows().forEach(function (row) {
         var matchesStatus = currentStatusFilter === 'all' || row.getAttribute('data-status') === currentStatusFilter;
         var name = (row.getAttribute('data-name') || '').toLowerCase();
         var matchesSearch = currentSearch === '' || name.indexOf(currentSearch) !== -1;
@@ -379,11 +384,10 @@
       sorted.forEach(function (row) {
         listWrap.appendChild(row);
       });
-      rows = sorted;
     }
 
     function sortByPrice(order) {
-      var sorted = rows.slice().sort(function (a, b) {
+      var sorted = getRows().sort(function (a, b) {
         var pa = parseFloat(a.getAttribute('data-price')) || 0;
         var pb = parseFloat(b.getAttribute('data-price')) || 0;
         return order === 'price-asc' ? pa - pb : pb - pa;
@@ -392,7 +396,7 @@
     }
 
     function sortAlphabetically() {
-      var sorted = rows.slice().sort(function (a, b) {
+      var sorted = getRows().sort(function (a, b) {
         var na = (a.getAttribute('data-name') || '').toLowerCase();
         var nb = (b.getAttribute('data-name') || '').toLowerCase();
         if (na < nb) return -1;
@@ -457,6 +461,7 @@
     }
 
     sortAlphabetically();
+    applyFilters();
   })();
 </script>
 
