@@ -1,554 +1,208 @@
 {% comment %}
-================================================================================
-  PREMIUM "TODAY'S SEAFOOD PRICES" PAGE
-  Theme: Ocean Inspired (Mobile-First, Luxury, High Performance)
-================================================================================
+==========================================================================
+  Section: Today's Seafood Prices
+  Premium, minimal, iOS-Settings-style price list for a fresh seafood
+  ecommerce brand. Pulls products dynamically from a merchant-selected
+  Shopify collection. No hardcoded products, no cards, no tables.
+==========================================================================
 {% endcomment %}
 
-{% comment %} CONFIGURATION {% endcomment %}
-{% assign SEE_MORE_URL = "https://truseafish.com/collections/limited-catch" %}
-{% assign SEAFOOD_COLLECTION_HANDLE = "all" %} {% comment %} Change to a specific collection handle if desired {% endcomment %}
+{%- liquid
+  assign tsp_collection = collections[section.settings.collection]
+  assign tsp_title = section.settings.title | default: "Today's Seafood Prices"
+  assign tsp_subtitle = section.settings.subtitle | default: "Fresh Catch. Fair Price."
+  assign tsp_badge_text = section.settings.live_badge_text | default: "Live Market"
+  assign tsp_see_more_url = section.settings.see_more_url
+  assign tsp_animate = section.settings.enable_bg_animation
+-%}
 
-<style>
-  /* Base Variables & Reset */
-  :root {
-    --bg-color: #0E2541;
-    --accent-white: #FFFFFF;
-    --accent-gold: #F9C74F;
-    --accent-blue: #00B4D8;
-    --glass-white: rgba(255, 255, 255, 0.08);
-    --glass-border: rgba(255, 255, 255, 0.12);
-    --glass-sticky: rgba(14, 37, 65, 0.85);
-    --font-premium: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
+<section
+  class="tsp"
+  id="tsp-{{ section.id }}"
+  data-tsp-root
+  data-see-more-url="{{ tsp_see_more_url | default: '#' }}"
+>
 
-  .ts-market-body {
-    background-color: var(--bg-color);
-    color: var(--accent-white);
-    font-family: var(--font-premium);
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
+  {%- comment -%} ============ AMBIENT BACKGROUND (decorative, CSS-only) ============ {%- endcomment -%}
+  {%- if tsp_animate -%}
+    <div class="tsp-ambient" aria-hidden="true">
+      <div class="tsp-ambient__rays"></div>
 
-  /* --- Premium Lightweight Ocean Background --- */
-  .ts-ocean-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    pointer-events: none;
-    background: linear-gradient(180deg, #133054 0%, #0E2541 100%);
-    animation: oceanGlow 12s ease-in-out infinite alternate;
-  }
+      <span class="tsp-bubble tsp-bubble--1"></span>
+      <span class="tsp-bubble tsp-bubble--2"></span>
+      <span class="tsp-bubble tsp-bubble--3"></span>
+      <span class="tsp-bubble tsp-bubble--4"></span>
+      <span class="tsp-bubble tsp-bubble--5"></span>
 
-  /* Light Rays */
-  .ts-ocean-bg::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 60%;
-    background: radial-gradient(circle at 50% -20%, rgba(0, 180, 216, 0.15) 0%, transparent 70%);
-    filter: blur(20px);
-  }
+      <svg class="tsp-fish tsp-fish--1" viewBox="0 0 64 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 16C14 4 34 4 46 16C34 28 14 28 2 16Z" fill="currentColor"/>
+        <path d="M46 16L60 6V26L46 16Z" fill="currentColor"/>
+        <circle cx="14" cy="13" r="1.6" fill="#0E2541"/>
+      </svg>
 
-  /* Animated Bubbles */
-  .ts-bubble {
-    position: absolute;
-    bottom: -20px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 50%;
-    animation: floatingBubbles 8s infinite linear;
-  }
-  .ts-bubble:nth-child(1) { left: 15%; width: 6px; height: 6px; animation-duration: 9s; animation-delay: 1s; }
-  .ts-bubble:nth-child(2) { left: 45%; width: 4px; height: 4px; animation-duration: 7s; animation-delay: 3s; }
-  .ts-bubble:nth-child(3) { left: 75%; width: 5px; height: 5px; animation-duration: 11s; animation-delay: 0s; }
+      <svg class="tsp-fish tsp-fish--2" viewBox="0 0 64 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 16C14 4 34 4 46 16C34 28 14 28 2 16Z" fill="currentColor"/>
+        <path d="M46 16L60 6V26L46 16Z" fill="currentColor"/>
+        <circle cx="14" cy="13" r="1.6" fill="#0E2541"/>
+      </svg>
 
-  /* Subtle Fish Silhouettes */
-  .ts-fish-silhouette {
-    position: absolute;
-    top: 35%;
-    left: -100px;
-    width: 40px;
-    height: 12px;
-    background: rgba(0, 180, 216, 0.04);
-    clip-path: polygon(0% 50%, 20% 20%, 75% 20%, 100% 50%, 75% 80%, 20% 80%, 90% 50%);
-    animation: fishSwim 25s infinite linear;
-  }
-  .ts-fish-silhouette:nth-child(5) { top: 65%; animation-duration: 32s; animation-delay: 8s; }
+      <svg class="tsp-crab" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="24" cy="16" rx="14" ry="9" fill="currentColor"/>
+        <path d="M10 12L2 6M38 12L46 6M10 20L2 26M38 20L46 26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="18" cy="12" r="1.4" fill="#0E2541"/>
+        <circle cx="30" cy="12" r="1.4" fill="#0E2541"/>
+      </svg>
+    </div>
+  {%- endif -%}
 
-  /* Subtle Crab Animation */
-  .ts-crab {
-    position: fixed;
-    bottom: 10px;
-    right: 15px;
-    width: 16px;
-    height: 10px;
-    background: rgba(249, 199, 79, 0.15);
-    border-radius: 6px 6px 3px 3px;
-    animation: crabScuttle 15s infinite ease-in-out;
-    z-index: 2;
-  }
+  <div class="tsp-container">
 
-  /* Keyframes */
-  @keyframes oceanGlow { 0% { opacity: 0.9; } 100% { opacity: 1; } }
-  @keyframes floatingBubbles {
-    0% { transform: translateY(0) scale(1); opacity: 0; }
-    10% { opacity: 0.4; }
-    90% { opacity: 0.4; }
-    100% { transform: translateY(-105vh) scale(1.2); opacity: 0; }
-  }
-  @keyframes fishSwim {
-    0% { transform: translateX(-10vw) scaleX(1); }
-    49% { transform: translateX(110vw) scaleX(1); }
-    50% { transform: translateX(110vw) scaleX(-1); }
-    99% { transform: translateX(-10vw) scaleX(-1); }
-    100% { transform: translateX(-10vw) scaleX(1); }
-  }
-  @keyframes crabScuttle {
-    0%, 100% { transform: translateX(0); }
-    45% { transform: translateX(-30px); }
-    50% { transform: translateX(-30px) scaleX(-1); }
-    95% { transform: translateX(0) scaleX(-1); }
-  }
-
-  /* --- Main Interface Container --- */
-  .ts-market-container {
-    position: relative;
-    z-index: 3;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 16px;
-    box-sizing: border-box;
-    opacity: 0;
-    animation: fadeInPage 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  @keyframes fadeInPage { to { opacity: 1; } }
-
-  /* Header Styles */
-  .ts-header {
-    text-align: center;
-    padding: 24px 0 16px 0;
-  }
-  .ts-header h1 {
-    font-size: 2rem;
-    font-weight: 300;
-    letter-spacing: -0.5px;
-    margin: 0 0 8px 0;
-  }
-  .ts-badge-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-  }
-  .ts-live-badge {
-    background: rgba(0, 180, 216, 0.2);
-    border: 1px solid var(--accent-blue);
-    color: var(--accent-blue);
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-weight: 600;
-  }
-  .ts-date {
-    font-size: 0.75rem;
-    opacity: 0.6;
-  }
-  .ts-subtitle {
-    font-size: 0.9rem;
-    opacity: 0.7;
-    font-style: italic;
-    margin: 4px 0 0 0;
-  }
-
-  /* --- Sticky Elements Wrapper --- */
-  .ts-sticky-controls {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--glass-sticky);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 12px 0 4px 0;
-    margin-bottom: 8px;
-    border-bottom: 1px solid var(--glass-border);
-  }
-
-  /* Search Styles */
-  .ts-search-wrapper {
-    margin-bottom: 12px;
-  }
-  .ts-search-input {
-    width: 100%;
-    background: var(--glass-white);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    color: var(--accent-white);
-    font-size: 0.95rem;
-    outline: none;
-    box-sizing: border-box;
-    transition: border-color 0.2s, background-color 0.2s;
-  }
-  .ts-search-input:focus {
-    border-color: var(--accent-blue);
-    background: rgba(255, 255, 255, 0.12);
-  }
-
-  /* Filter Styles */
-  .ts-filters-scroll {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    scrollbar-width: none; /* Firefox */
-  }
-  .ts-filters-scroll::-webkit-scrollbar {
-    display: none; /* Safari/Chrome */
-  }
-  .ts-filter-btn {
-    background: var(--glass-white);
-    border: 1px solid var(--glass-border);
-    color: var(--accent-white);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    user-select: none;
-  }
-  .ts-filter-btn.active {
-    background: var(--accent-blue);
-    border-color: var(--accent-blue);
-    color: var(--bg-color);
-    font-weight: 600;
-  }
-
-  /* --- Dashboard List Glass Grid --- */
-  .ts-list-container {
-    background: var(--glass-white);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    overflow: hidden;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-    margin-bottom: 40px;
-  }
-
-  /* Table Architecture */
-  .ts-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-  }
-  
-  .ts-thead {
-    position: sticky;
-    top: 108px; /* Accounts for search + filters dynamically */
-    z-index: 90;
-    background: #112947;
-    border-bottom: 1px solid var(--glass-border);
-  }
-  .ts-thead th {
-    padding: 12px 16px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    opacity: 0.5;
-    font-weight: 600;
-  }
-
-  /* Rows */
-  .ts-row {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .ts-row:last-child {
-    border-bottom: none;
-  }
-  .ts-row:hover {
-    background-color: rgba(255, 255, 255, 0.04);
-  }
-  .ts-row:active {
-    background-color: rgba(255, 255, 255, 0.08);
-  }
-
-  .ts-cell {
-    padding: 14px 16px;
-    vertical-align: middle;
-    font-size: 0.95rem;
-  }
-
-  /* Specific Column Styling */
-  .ts-cell-product {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 400;
-  }
-  .ts-status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    display: inline-block;
-  }
-  .ts-status-dot.in-stock { background-color: #4CAF50; box-shadow: 0 0 6px #4CAF50; }
-  .ts-status-dot.prebook { background-color: #F44336; box-shadow: 0 0 6px #F44336; }
-
-  .ts-cell-qty {
-    opacity: 0.7;
-    font-size: 0.85rem;
-  }
-  
-  .ts-cell-price {
-    color: var(--accent-gold);
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  .ts-cell-action {
-    text-align: right;
-    width: 40px;
-  }
-  .ts-chevron {
-    color: var(--accent-blue);
-    font-size: 1.25rem;
-    display: inline-block;
-    transition: transform 0.2s ease;
-    line-height: 1;
-  }
-  .ts-row:hover .ts-chevron {
-    transform: scale(1.2) translateX(2px);
-    color: var(--accent-white);
-  }
-
-  /* No Data State */
-  .ts-no-results {
-    padding: 32px;
-    text-align: center;
-    opacity: 0.5;
-    font-style: italic;
-    display: none;
-  }
-
-  /* --- Desktop Enhancements --- */
-  @media (min-width: 768px) {
-    .ts-market-container {
-      padding: 40px 24px;
-    }
-    .ts-header h1 {
-      font-size: 2.75rem;
-    }
-    .ts-cell {
-      padding: 18px 24px;
-    }
-    .ts-thead th {
-      padding: 14px 24px;
-    }
-    .ts-sticky-controls {
-      padding: 20px 0 8px 0;
-    }
-    .ts-thead {
-      top: 126px; /* Adjusting alignment for desktop heights */
-    }
-  }
-</style>
-
-<div class="ts-market-body">
-  
-  <div class="ts-ocean-bg">
-    <div class="ts-bubble"></div>
-    <div class="ts-bubble"></div>
-    <div class="ts-bubble"></div>
-    <div class="ts-fish-silhouette"></div>
-    <div class="ts-fish-silhouette"></div>
-  </div>
-  <div class="ts-crab"></div>
-
-  <div class="ts-market-container">
-    
-    <header class="ts-header">
-      <div class="ts-badge-row">
-        <span class="ts-live-badge">Live Market</span>
-        <span class="ts-date" id="current-date"></span>
+    {%- comment -%} ============ HEADER ============ {%- endcomment -%}
+    <header class="tsp-header">
+      <div class="tsp-badge">
+        <span class="tsp-badge__dot"></span>
+        <span>{{ tsp_badge_text }}</span>
       </div>
-      <h1>Today's Seafood Prices</h1>
-      <p class="ts-subtitle">Fresh Catch. Fair Price.</p>
+
+      <h2 class="tsp-title">{{ tsp_title }}</h2>
+      <p class="tsp-subtitle">{{ tsp_subtitle }}</p>
+
+      <p class="tsp-updated">
+        Last updated
+        <time datetime="{{ 'now' | date: '%Y-%m-%d' }}">{{ 'now' | date: '%b %d, %Y' }}</time>
+      </p>
     </header>
 
-    <div class="ts-sticky-controls">
-      <div class="ts-search-wrapper">
-        <input type="text" id="ts-search" class="ts-search-input" placeholder="Search daily catch..." autocomplete="off">
+    {%- comment -%} ============ STICKY SEARCH + FILTERS ============ {%- endcomment -%}
+    <div class="tsp-controls" data-tsp-controls>
+      <div class="tsp-search">
+        <svg class="tsp-search__icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M18 18L14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <input
+          type="text"
+          class="tsp-search__input"
+          data-tsp-search
+          placeholder="Search fish, prawns, crab, squid..."
+          aria-label="Search seafood"
+          autocomplete="off"
+        >
       </div>
-      <div class="ts-filters-scroll">
-        <button class="ts-filter-btn active" data-filter="all">All</button>
-        <button class="ts-filter-btn" data-filter="in-stock">In Stock</button>
-        <button class="ts-filter-btn" data-filter="prebook">Prebook</button>
-        <button class="ts-filter-btn" data-filter="price-low">Price Low → High</button>
-        <button class="ts-filter-btn" data-filter="price-high">Price High → Low</button>
+
+      <div class="tsp-filters" data-tsp-filters role="group" aria-label="Filter and sort seafood">
+        <button type="button" class="tsp-chip is-active" data-mode="all">All</button>
+        <button type="button" class="tsp-chip" data-mode="instock">In Stock</button>
+        <button type="button" class="tsp-chip" data-mode="prebook">Prebook</button>
+        <button type="button" class="tsp-chip" data-mode="price-asc">Price Low → High</button>
+        <button type="button" class="tsp-chip" data-mode="price-desc">Price High → Low</button>
       </div>
     </div>
 
-    <div class="ts-list-container">
-      <table class="ts-table">
-        <thead class="ts-thead">
-          <tr>
-            <th style="width: 50%;">Product</th>
-            <th style="width: 25%;">Qty</th>
-            <th style="width: 20%;">Price</th>
-            <th style="width: 5%; text-align: right;"></th>
-          </tr>
-        </thead>
-        <tbody id="ts-product-rows">
-          {%- comment -%} Pulls live data straight out of the Shopify Collection engine {%- endcomment -%}
-          {% assign market_collection = collections[SEAFOOD_COLLECTION_HANDLE] %}
-          {% for product in market_collection.products %}
-            {% assign first_variant = product.variants.first %}
-            <tr class="ts-row" 
-                data-title="{{ product.title | escape | downcase }}" 
-                data-available="{% if product.available %}true{% else %}false{% endif %}" 
-                data-price="{{ first_variant.price }}"
-                onclick="window.location.href='{{ SEE_MORE_URL }}';">
-              
-              <td class="ts-cell ts-cell-product">
-                {% if product.available %}
-                  <span class="ts-status-dot in-stock"></span>
-                {% else %}
-                  <span class="ts-status-dot prebook"></span>
-                {% endif %}
-                <span>{{ product.title }}</span>
-              </td>
-              
-              <td class="ts-cell ts-cell-qty">
-                {{ first_variant.title }}
-              </td>
-              
-              <td class="ts-cell ts-cell-price">
-                {{ first_variant.price | money }}
-              </td>
-              
-              <td class="ts-cell ts-cell-action">
-                <span class="ts-chevron">→</span>
-              </td>
-            </tr>
-          {% else %}
-            <tr>
-              <td colspan="4" class="ts-cell" style="text-align: center; opacity: 0.5; padding: 40px 0;">
-                No seasonal allocations active at this moment.
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      
-      <div id="ts-empty-state" class="ts-no-results">
-        No varieties match your selected filter criteria.
-      </div>
+    {%- comment -%} ============ PRODUCT ROWS ============ {%- endcomment -%}
+    <div class="tsp-list" data-tsp-list>
+      {%- if tsp_collection != blank and tsp_collection.products.size > 0 -%}
+        {%- for product in tsp_collection.products -%}
+          {%- assign tsp_variant = product.selected_or_first_available_variant -%}
+          {%- if tsp_variant == blank -%}
+            {%- assign tsp_variant = product.variants.first -%}
+          {%- endif -%}
+          {%- assign tsp_available = product.available -%}
+          {%- assign tsp_variant_title = tsp_variant.title -%}
+          {%- if tsp_variant_title == blank or tsp_variant_title == "Default Title" -%}
+            {%- assign tsp_variant_title = "500g" -%}
+          {%- endif -%}
+
+          <a
+            href="{{ tsp_see_more_url | default: '#' }}"
+            class="tsp-row"
+            data-tsp-row
+            data-name="{{ product.title | escape | downcase }}"
+            data-price="{{ tsp_variant.price | divided_by: 100.0 }}"
+            data-status="{% if tsp_available %}instock{% else %}prebook{% endif %}"
+          >
+            <span
+              class="tsp-row__dot {% if tsp_available %}is-available{% else %}is-unavailable{% endif %}"
+              aria-hidden="true"
+            ></span>
+
+            <span class="tsp-row__info">
+              <span class="tsp-row__name">{{ product.title }}</span>
+              <span class="tsp-row__variant">{{ tsp_variant_title }}</span>
+            </span>
+
+            <span class="tsp-row__price">{{ tsp_variant.price | money_without_trailing_zeros }}</span>
+
+            <svg class="tsp-row__chevron" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M1 1L7 7L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        {%- endfor -%}
+      {%- else -%}
+        <div class="tsp-empty">
+          <p>Select a collection in the theme editor to display today's prices.</p>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="tsp-no-results" data-tsp-no-results hidden>
+      <p>No seafood matches your search.</p>
     </div>
 
   </div>
-</div>
+</section>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    // Generate Current Human Readable Market Stamp
-    const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
-    document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', dateOptions);
+{{ 'todays-seafood-prices.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'todays-seafood-prices.js' | asset_url }}" defer></script>
 
-    // Dom Elements
-    const searchInput = document.getElementById('ts-search');
-    const filterButtons = document.querySelectorAll('.ts-filter-btn');
-    const tableRows = document.querySelectorAll('.ts-row');
-    const emptyState = document.getElementById('ts-empty-state');
-    const tableBody = document.getElementById('ts-product-rows');
-
-    // Dynamic State Values
-    let activeSearchTerm = "";
-    let activeFilterMode = "all"; // 'all', 'in-stock', 'prebook'
-    let activeSortMode = "";      // '', 'price-low', 'price-high'
-
-    // Process State Changes
-    function runLiveFilters() {
-      let visibleCount = 0;
-
-      tableRows.forEach(row => {
-        const title = row.getAttribute('data-title');
-        const available = row.getAttribute('data-available') === 'true';
-        
-        // Search Logic Check
-        const matchSearch = title.includes(activeSearchTerm);
-        
-        // Availability Logic Check
-        let matchFilter = false;
-        if (activeFilterMode === 'all') matchFilter = true;
-        else if (activeFilterMode === 'in-stock' && available) matchFilter = true;
-        else if (activeFilterMode === 'prebook' && !available) matchFilter = true;
-
-        if (matchSearch && matchFilter) {
-          row.style.display = "";
-          visibleCount++;
-        } else {
-          row.style.display = "none";
-        }
-      });
-
-      // Toggle Table Content Context Visibility State
-      emptyState.style.display = (visibleCount === 0) ? "block" : "none";
+{% schema %}
+{
+  "name": "Today's Seafood Prices",
+  "tag": "section",
+  "class": "tsp-shopify-section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Products in this collection are listed with their price and availability."
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section title",
+      "default": "Today's Seafood Prices"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Section subtitle",
+      "default": "Fresh Catch. Fair Price."
+    },
+    {
+      "type": "text",
+      "id": "live_badge_text",
+      "label": "Live market badge text",
+      "default": "Live Market"
+    },
+    {
+      "type": "url",
+      "id": "see_more_url",
+      "label": "See more URL",
+      "info": "Every row links to this URL, not the individual product page."
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_bg_animation",
+      "label": "Enable background animation",
+      "default": true,
+      "info": "Subtle ocean light, bubbles, fish and a crab. CSS-only, respects reduced motion."
     }
-
-    // High Performance Sorting Functionality
-    function sortPrices(order) {
-      const rowsArray = Array.from(tableRows);
-      
-      rowsArray.sort((rowA, rowB) => {
-        const priceA = parseFloat(rowA.getAttribute('data-price'));
-        const priceB = parseFloat(rowB.getAttribute('data-price'));
-        return order === 'price-low' ? priceA - priceB : priceB - priceA;
-      });
-
-      // Clear layout order, re-append sorted items instantly
-      rowsArray.forEach(row => tableBody.appendChild(row));
+  ],
+  "presets": [
+    {
+      "name": "Today's Seafood Prices"
     }
-
-    // Input Event Listener Matrix
-    searchInput.addEventListener('input', function(e) {
-      activeSearchTerm = e.target.value.toLowerCase().trim();
-      runLiveFilters();
-    });
-
-    filterButtons.forEach(btn => {
-      btn.addEventListener('click', function() {
-        // Toggle selected active state highlights
-        filterButtons.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-
-        const targetFilter = this.getAttribute('data-filter');
-
-        if (targetFilter === 'price-low' || targetFilter === 'price-high') {
-          activeSortMode = targetFilter;
-          sortPrices(activeSortMode);
-        } else {
-          activeFilterMode = targetFilter;
-        }
-        
-        runLiveFilters();
-      });
-    });
-  });
-</script>
+  ]
+}
+{% endschema %}
