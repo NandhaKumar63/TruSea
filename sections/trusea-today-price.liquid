@@ -1,202 +1,348 @@
-{% comment %}
-==========================================================================
+{%- comment -%}
   Section: Today's Seafood Prices
-  Premium, minimal, iOS-Settings-style price list for a fresh seafood
-  ecommerce brand. Pulls products dynamically from a merchant-selected
-  Shopify collection. No hardcoded products, no cards, no tables.
-==========================================================================
-{% endcomment %}
+{%- endcomment -%}
 
-{%- liquid
-  assign tsp_collection = collections[section.settings.collection]
-  assign tsp_title = section.settings.title | default: "Today's Seafood Prices"
-  assign tsp_subtitle = section.settings.subtitle | default: "Fresh Catch. Fair Price."
-  assign tsp_badge_text = section.settings.live_badge_text | default: "Live Market"
-  assign tsp_see_more_url = section.settings.see_more_url
-  assign tsp_animate = section.settings.enable_bg_animation
--%}
+<section class="tsp-section" id="tsp-section-{{ section.id }}">
+  <div class="tsp-wrap">
 
-<section
-  class="tsp"
-  id="tsp-{{ section.id }}"
-  data-tsp-root
-  data-see-more-url="{{ tsp_see_more_url | default: '#' }}"
->
-
-  {%- comment -%} ============ AMBIENT BACKGROUND (decorative, CSS-only) ============ {%- endcomment -%}
-  {%- if tsp_animate -%}
-    <div class="tsp-ambient" aria-hidden="true">
-      <div class="tsp-ambient__rays"></div>
-
-      <span class="tsp-bubble tsp-bubble--1"></span>
-      <span class="tsp-bubble tsp-bubble--2"></span>
-      <span class="tsp-bubble tsp-bubble--3"></span>
-      <span class="tsp-bubble tsp-bubble--4"></span>
-      <span class="tsp-bubble tsp-bubble--5"></span>
-
-      <svg class="tsp-fish tsp-fish--1" viewBox="0 0 64 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 16C14 4 34 4 46 16C34 28 14 28 2 16Z" fill="currentColor"/>
-        <path d="M46 16L60 6V26L46 16Z" fill="currentColor"/>
-        <circle cx="14" cy="13" r="1.6" fill="#0E2541"/>
-      </svg>
-
-      <svg class="tsp-fish tsp-fish--2" viewBox="0 0 64 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 16C14 4 34 4 46 16C34 28 14 28 2 16Z" fill="currentColor"/>
-        <path d="M46 16L60 6V26L46 16Z" fill="currentColor"/>
-        <circle cx="14" cy="13" r="1.6" fill="#0E2541"/>
-      </svg>
-
-      <svg class="tsp-crab" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="24" cy="16" rx="14" ry="9" fill="currentColor"/>
-        <path d="M10 12L2 6M38 12L46 6M10 20L2 26M38 20L46 26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="18" cy="12" r="1.4" fill="#0E2541"/>
-        <circle cx="30" cy="12" r="1.4" fill="#0E2541"/>
-      </svg>
+    <div class="tsp-header">
+      <h2 class="tsp-title">{{ section.settings.section_title | default: "Today's Seafood Prices" }}</h2>
+      <p class="tsp-subtitle">{{ section.settings.section_subtitle | default: "Fresh Catch. Fair Price." }}</p>
+      <p class="tsp-updated">Last Updated: <span id="tsp-date-{{ section.id }}"></span></p>
     </div>
-  {%- endif -%}
 
-  <div class="tsp-container">
+    <div class="tsp-container">
 
-    {%- comment -%} ============ HEADER ============ {%- endcomment -%}
-    <header class="tsp-header">
-      <div class="tsp-badge">
-        <span class="tsp-badge__dot"></span>
-        <span>{{ tsp_badge_text }}</span>
-      </div>
-
-      <h2 class="tsp-title">{{ tsp_title }}</h2>
-      <p class="tsp-subtitle">{{ tsp_subtitle }}</p>
-
-      <p class="tsp-updated">
-        Last updated
-        <time datetime="{{ 'now' | date: '%Y-%m-%d' }}">{{ 'now' | date: '%b %d, %Y' }}</time>
-      </p>
-    </header>
-
-    {%- comment -%} ============ STICKY SEARCH + FILTERS ============ {%- endcomment -%}
-    <div class="tsp-controls" data-tsp-controls>
-      <div class="tsp-search">
-        <svg class="tsp-search__icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.6"/>
-          <path d="M18 18L14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
+      <div class="tsp-search-wrap">
         <input
           type="text"
-          class="tsp-search__input"
-          data-tsp-search
-          placeholder="Search fish, prawns, crab, squid..."
-          aria-label="Search seafood"
+          class="tsp-search"
+          id="tsp-search-{{ section.id }}"
+          placeholder="Search products instantly."
           autocomplete="off"
         >
       </div>
 
-      <div class="tsp-filters" data-tsp-filters role="group" aria-label="Filter and sort seafood">
-        <button type="button" class="tsp-chip is-active" data-mode="all">All</button>
-        <button type="button" class="tsp-chip" data-mode="instock">In Stock</button>
-        <button type="button" class="tsp-chip" data-mode="prebook">Prebook</button>
-        <button type="button" class="tsp-chip" data-mode="price-asc">Price Low → High</button>
-        <button type="button" class="tsp-chip" data-mode="price-desc">Price High → Low</button>
+      <div class="tsp-filters" id="tsp-filters-{{ section.id }}">
+        <button type="button" class="tsp-filter-btn is-active" data-filter="all">All</button>
+        <button type="button" class="tsp-filter-btn" data-filter="in-stock">In Stock</button>
+        <button type="button" class="tsp-filter-btn" data-filter="prebook">Prebook</button>
+        <button type="button" class="tsp-filter-btn" data-sort="price-asc">Price Low &rarr; High</button>
+        <button type="button" class="tsp-filter-btn" data-sort="price-desc">Price High &rarr; Low</button>
       </div>
+
+      <div class="tsp-list" id="tsp-list-{{ section.id }}">
+        {%- if section.settings.collection != blank -%}
+          {%- for product in section.settings.collection.products -%}
+            {%- assign variant = product.variants.first -%}
+            {%- assign is_available = variant.available -%}
+            <a
+              href="{{ section.settings.see_more_url | default: '#' }}"
+              class="tsp-row"
+              data-name="{{ product.title | handle }}"
+              data-status="{% if is_available %}in-stock{% else %}prebook{% endif %}"
+              data-price="{{ variant.price | divided_by: 100.0 }}"
+            >
+              <span class="tsp-dot {% if is_available %}tsp-dot-green{% else %}tsp-dot-red{% endif %}"></span>
+              <span class="tsp-name">{{ product.title }}</span>
+              <span class="tsp-qty">{{ variant.title }}</span>
+              <span class="tsp-price">{{ variant.price | money_without_trailing_zeros }}</span>
+              <span class="tsp-chevron">&rsaquo;</span>
+            </a>
+          {%- endfor -%}
+        {%- else -%}
+          <p class="tsp-empty">Select a collection in the theme editor to display products.</p>
+        {%- endif -%}
+      </div>
+
+      <p class="tsp-no-results" id="tsp-no-results-{{ section.id }}" hidden>No products found.</p>
+
     </div>
-
-    {%- comment -%} ============ PRODUCT ROWS ============ {%- endcomment -%}
-    <div class="tsp-list" data-tsp-list>
-      {%- if tsp_collection != blank and tsp_collection.products.size > 0 -%}
-        {%- for product in tsp_collection.products -%}
-          {%- assign tsp_variant = product.selected_or_first_available_variant -%}
-          {%- if tsp_variant == blank -%}
-            {%- assign tsp_variant = product.variants.first -%}
-          {%- endif -%}
-          {%- assign tsp_available = product.available -%}
-          {%- assign tsp_variant_title = tsp_variant.title -%}
-          {%- if tsp_variant_title == blank or tsp_variant_title == "Default Title" -%}
-            {%- assign tsp_variant_title = "500g" -%}
-          {%- endif -%}
-
-          <a
-            href="{{ tsp_see_more_url | default: '#' }}"
-            class="tsp-row"
-            data-tsp-row
-            data-name="{{ product.title | escape | downcase }}"
-            data-price="{{ tsp_variant.price | divided_by: 100.0 }}"
-            data-status="{% if tsp_available %}instock{% else %}prebook{% endif %}"
-          >
-            <span
-              class="tsp-row__dot {% if tsp_available %}is-available{% else %}is-unavailable{% endif %}"
-              aria-hidden="true"
-            ></span>
-
-            <span class="tsp-row__info">
-              <span class="tsp-row__name">{{ product.title }}</span>
-              <span class="tsp-row__variant">{{ tsp_variant_title }}</span>
-            </span>
-
-            <span class="tsp-row__price">{{ tsp_variant.price | money_without_trailing_zeros }}</span>
-
-            <svg class="tsp-row__chevron" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M1 1L7 7L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-        {%- endfor -%}
-      {%- else -%}
-        <div class="tsp-empty">
-          <p>Select a collection in the theme editor to display today's prices.</p>
-        </div>
-      {%- endif -%}
-    </div>
-
-    <div class="tsp-no-results" data-tsp-no-results hidden>
-      <p>No seafood matches your search.</p>
-    </div>
-
   </div>
 </section>
 
-{{ 'todays-seafood-prices.css' | asset_url | stylesheet_tag }}
-<script src="{{ 'todays-seafood-prices.js' | asset_url }}" defer></script>
+<style>
+  #tsp-section-{{ section.id }} {
+    background-color: #0E2541;
+    padding: 40px 16px;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-title {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-subtitle {
+    color: #cfd9e6;
+    font-size: 14px;
+    margin: 0 0 4px;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-updated {
+    color: #9fb1c7;
+    font-size: 12px;
+    margin: 0;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-search-wrap {
+    margin-bottom: 12px;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-search {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 16px;
+    border: 1px solid #dcdcdc;
+    border-radius: 24px;
+    font-size: 14px;
+    color: #000000;
+    outline: none;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-search:focus {
+    border-color: #0E2541;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-filter-btn {
+    border: 1px solid #dcdcdc;
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-filter-btn.is-active {
+    background-color: #0E2541;
+    color: #ffffff;
+    border-color: #0E2541;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 4px;
+    border-bottom: 1px solid #eeeeee;
+    text-decoration: none;
+    color: #000000;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-row:last-child {
+    border-bottom: none;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-dot-green {
+    background-color: #2ecc71;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-dot-red {
+    background-color: #e74c3c;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-name {
+    flex: 1 1 auto;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-qty {
+    font-size: 13px;
+    color: #555555;
+    flex: 0 0 auto;
+    min-width: 45px;
+    text-align: right;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: #FF6B00;
+    flex: 0 0 auto;
+    min-width: 65px;
+    text-align: right;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-chevron {
+    font-size: 18px;
+    color: #999999;
+    flex: 0 0 auto;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-empty,
+  #tsp-section-{{ section.id }} .tsp-no-results {
+    text-align: center;
+    color: #777777;
+    font-size: 14px;
+    padding: 20px 0;
+    margin: 0;
+  }
+
+  @media (max-width: 480px) {
+    #tsp-section-{{ section.id }} .tsp-title {
+      font-size: 22px;
+    }
+
+    #tsp-section-{{ section.id }} .tsp-name {
+      font-size: 13px;
+    }
+
+    #tsp-section-{{ section.id }} .tsp-qty,
+    #tsp-section-{{ section.id }} .tsp-price {
+      font-size: 12px;
+    }
+
+    #tsp-section-{{ section.id }} .tsp-row {
+      padding: 10px 2px;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var sectionId = {{ section.id | json }};
+    var dateEl = document.getElementById('tsp-date-' + sectionId);
+    if (dateEl) {
+      var d = new Date();
+      var options = { day: '2-digit', month: 'short', year: 'numeric' };
+      dateEl.textContent = d.toLocaleDateString('en-IN', options);
+    }
+
+    var searchInput = document.getElementById('tsp-search-' + sectionId);
+    var filterWrap = document.getElementById('tsp-filters-' + sectionId);
+    var listWrap = document.getElementById('tsp-list-' + sectionId);
+    var noResults = document.getElementById('tsp-no-results-' + sectionId);
+
+    if (!listWrap) return;
+
+    var rows = Array.prototype.slice.call(listWrap.querySelectorAll('.tsp-row'));
+    var currentStatusFilter = 'all';
+    var currentSearch = '';
+
+    function applyFilters() {
+      var visibleCount = 0;
+      rows.forEach(function (row) {
+        var matchesStatus = currentStatusFilter === 'all' || row.getAttribute('data-status') === currentStatusFilter;
+        var matchesSearch = row.getAttribute('data-name').indexOf(currentSearch) !== -1 ||
+          row.querySelector('.tsp-name').textContent.toLowerCase().indexOf(currentSearch) !== -1;
+        var show = matchesStatus && matchesSearch;
+        row.hidden = !show;
+        if (show) visibleCount++;
+      });
+      if (noResults) noResults.hidden = visibleCount !== 0;
+    }
+
+    function sortRows(order) {
+      var sorted = rows.slice().sort(function (a, b) {
+        var pa = parseFloat(a.getAttribute('data-price')) || 0;
+        var pb = parseFloat(b.getAttribute('data-price')) || 0;
+        return order === 'price-asc' ? pa - pb : pb - pa;
+      });
+      sorted.forEach(function (row) {
+        listWrap.appendChild(row);
+      });
+      rows = sorted;
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        currentSearch = this.value.trim().toLowerCase();
+        applyFilters();
+      });
+    }
+
+    if (filterWrap) {
+      var buttons = Array.prototype.slice.call(filterWrap.querySelectorAll('.tsp-filter-btn'));
+      buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var filter = btn.getAttribute('data-filter');
+          var sort = btn.getAttribute('data-sort');
+
+          if (filter) {
+            currentStatusFilter = filter;
+            buttons.forEach(function (b) {
+              if (b.hasAttribute('data-filter')) b.classList.remove('is-active');
+            });
+            btn.classList.add('is-active');
+            applyFilters();
+          }
+
+          if (sort) {
+            sortRows(sort);
+          }
+        });
+      });
+    }
+  })();
+</script>
 
 {% schema %}
 {
   "name": "Today's Seafood Prices",
-  "tag": "section",
-  "class": "tsp-shopify-section",
   "settings": [
     {
       "type": "collection",
       "id": "collection",
-      "label": "Collection",
-      "info": "Products in this collection are listed with their price and availability."
-    },
-    {
-      "type": "text",
-      "id": "title",
-      "label": "Section title",
-      "default": "Today's Seafood Prices"
-    },
-    {
-      "type": "text",
-      "id": "subtitle",
-      "label": "Section subtitle",
-      "default": "Fresh Catch. Fair Price."
-    },
-    {
-      "type": "text",
-      "id": "live_badge_text",
-      "label": "Live market badge text",
-      "default": "Live Market"
+      "label": "Collection"
     },
     {
       "type": "url",
       "id": "see_more_url",
-      "label": "See more URL",
-      "info": "Every row links to this URL, not the individual product page."
+      "label": "See More URL"
     },
     {
-      "type": "checkbox",
-      "id": "enable_bg_animation",
-      "label": "Enable background animation",
-      "default": true,
-      "info": "Subtle ocean light, bubbles, fish and a crab. CSS-only, respects reduced motion."
+      "type": "text",
+      "id": "section_title",
+      "label": "Section Title",
+      "default": "Today's Seafood Prices"
+    },
+    {
+      "type": "text",
+      "id": "section_subtitle",
+      "label": "Section Subtitle",
+      "default": "Fresh Catch. Fair Price."
     }
   ],
   "presets": [
