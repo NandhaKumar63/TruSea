@@ -24,22 +24,34 @@
       </div>
 
       <div class="tsp-filters" id="tsp-filters-{{ section.id }}">
-        <button type="button" class="tsp-filter-btn is-active" data-filter="all">All</button>
-        <button type="button" class="tsp-filter-btn" data-filter="in-stock">In Stock</button>
-        <button type="button" class="tsp-filter-btn" data-filter="prebook">Prebook</button>
-        <button type="button" class="tsp-filter-btn" data-sort="price-asc">Price Low &rarr; High</button>
-        <button type="button" class="tsp-filter-btn" data-sort="price-desc">Price High &rarr; Low</button>
+        <div class="tsp-filter-left">
+          <button type="button" class="tsp-filter-btn is-active" data-filter="all">All</button>
+          <button type="button" class="tsp-filter-btn" data-filter="in-stock">In Stock</button>
+          <button type="button" class="tsp-filter-btn" data-filter="prebook">Prebook</button>
+        </div>
+        <div class="tsp-sort-wrap">
+          <button type="button" class="tsp-sort-btn" id="tsp-sort-btn-{{ section.id }}">
+            Sort <span class="tsp-sort-caret">&#9662;</span>
+          </button>
+          <div class="tsp-sort-menu" id="tsp-sort-menu-{{ section.id }}" hidden>
+            <button type="button" class="tsp-sort-option" data-sort="price-asc">Price Low &rarr; High</button>
+            <button type="button" class="tsp-sort-option" data-sort="price-desc">Price High &rarr; Low</button>
+          </div>
+        </div>
       </div>
 
       <div class="tsp-list" id="tsp-list-{{ section.id }}">
         {%- if section.settings.collection != blank -%}
           {%- for product in section.settings.collection.products -%}
             {%- assign variant = product.variants.first -%}
-            {%- assign is_available = variant.available -%}
+            {%- assign is_available = true -%}
+            {%- if variant.inventory_management != blank and variant.inventory_quantity <= 0 -%}
+              {%- assign is_available = false -%}
+            {%- endif -%}
             <a
               href="{{ section.settings.see_more_url | default: '#' }}"
               class="tsp-row"
-              data-name="{{ product.title | handle }}"
+              data-name="{{ product.title | escape }}"
               data-status="{% if is_available %}in-stock{% else %}prebook{% endif %}"
               data-price="{{ variant.price | divided_by: 100.0 }}"
             >
@@ -128,9 +140,18 @@
 
   #tsp-section-{{ section.id }} .tsp-filters {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 16px;
+    position: relative;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-filter-left {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   #tsp-section-{{ section.id }} .tsp-filter-btn {
@@ -148,6 +169,61 @@
     background-color: #0E2541 !important;
     color: #ffffff !important;
     border-color: #0E2541 !important;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-sort-wrap {
+    position: relative;
+    flex: 0 0 auto;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-sort-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid #dcdcdc;
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-sort-caret {
+    font-size: 10px;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-sort-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #e2e2e2;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    z-index: 5;
+    min-width: 170px;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-sort-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-sort-option:hover {
+    background-color: #f4f6f8;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-sort-option + .tsp-sort-option {
+    border-top: 1px solid #eeeeee;
   }
 
   #tsp-section-{{ section.id }} .tsp-list {
@@ -277,6 +353,8 @@
     var filterWrap = document.getElementById('tsp-filters-' + sectionId);
     var listWrap = document.getElementById('tsp-list-' + sectionId);
     var noResults = document.getElementById('tsp-no-results-' + sectionId);
+    var sortBtn = document.getElementById('tsp-sort-btn-' + sectionId);
+    var sortMenu = document.getElementById('tsp-sort-menu-' + sectionId);
 
     if (!listWrap) return;
 
@@ -288,8 +366,8 @@
       var visibleCount = 0;
       rows.forEach(function (row) {
         var matchesStatus = currentStatusFilter === 'all' || row.getAttribute('data-status') === currentStatusFilter;
-        var matchesSearch = row.getAttribute('data-name').indexOf(currentSearch) !== -1 ||
-          row.querySelector('.tsp-name').textContent.toLowerCase().indexOf(currentSearch) !== -1;
+        var name = (row.getAttribute('data-name') || '').toLowerCase();
+        var matchesSearch = currentSearch === '' || name.indexOf(currentSearch) !== -1;
         var show = matchesStatus && matchesSearch;
         row.hidden = !show;
         if (show) visibleCount++;
@@ -297,16 +375,35 @@
       if (noResults) noResults.hidden = visibleCount !== 0;
     }
 
-    function sortRows(order) {
+    function sortRowsInDom(sorted) {
+      sorted.forEach(function (row) {
+        listWrap.appendChild(row);
+      });
+      rows = sorted;
+    }
+
+    function sortByPrice(order) {
       var sorted = rows.slice().sort(function (a, b) {
         var pa = parseFloat(a.getAttribute('data-price')) || 0;
         var pb = parseFloat(b.getAttribute('data-price')) || 0;
         return order === 'price-asc' ? pa - pb : pb - pa;
       });
-      sorted.forEach(function (row) {
-        listWrap.appendChild(row);
+      sortRowsInDom(sorted);
+    }
+
+    function sortAlphabetically() {
+      var sorted = rows.slice().sort(function (a, b) {
+        var na = (a.getAttribute('data-name') || '').toLowerCase();
+        var nb = (b.getAttribute('data-name') || '').toLowerCase();
+        if (na < nb) return -1;
+        if (na > nb) return 1;
+        return 0;
       });
-      rows = sorted;
+      sortRowsInDom(sorted);
+    }
+
+    function closeSortMenu() {
+      if (sortMenu) sortMenu.hidden = true;
     }
 
     if (searchInput) {
@@ -318,27 +415,48 @@
 
     if (filterWrap) {
       filterWrap.addEventListener('click', function (e) {
-        var btn = e.target.closest('.tsp-filter-btn');
-        if (!btn || !filterWrap.contains(btn)) return;
-
-        var filter = btn.getAttribute('data-filter');
-        var sort = btn.getAttribute('data-sort');
-
-        if (filter) {
+        var filterBtn = e.target.closest('.tsp-filter-btn');
+        if (filterBtn && filterWrap.contains(filterBtn)) {
+          var filter = filterBtn.getAttribute('data-filter');
           currentStatusFilter = filter;
+
           var filterButtons = filterWrap.querySelectorAll('.tsp-filter-btn[data-filter]');
           filterButtons.forEach(function (b) {
             b.classList.remove('is-active');
           });
-          btn.classList.add('is-active');
-          applyFilters();
-        }
+          filterBtn.classList.add('is-active');
 
-        if (sort) {
-          sortRows(sort);
+          if (filter === 'all') {
+            sortAlphabetically();
+          }
+          applyFilters();
+          return;
         }
       });
     }
+
+    if (sortBtn && sortMenu) {
+      sortBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        sortMenu.hidden = !sortMenu.hidden;
+      });
+
+      sortMenu.addEventListener('click', function (e) {
+        var option = e.target.closest('.tsp-sort-option');
+        if (!option) return;
+        var sort = option.getAttribute('data-sort');
+        if (sort) sortByPrice(sort);
+        closeSortMenu();
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!sortMenu.hidden && !sortMenu.contains(e.target) && e.target !== sortBtn) {
+          closeSortMenu();
+        }
+      });
+    }
+
+    sortAlphabetically();
   })();
 </script>
 
