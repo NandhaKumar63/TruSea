@@ -1,0 +1,121 @@
+/* ==========================================================================
+   Today's Seafood Prices — vanilla JS
+   Instant client-side search, filter and sort. No dependencies,
+   no page reloads, minimal DOM writes.
+   ========================================================================== */
+
+(function () {
+  "use strict";
+
+  function initTspSection(root) {
+    var list = root.querySelector("[data-tsp-list]");
+    var searchInput = root.querySelector("[data-tsp-search]");
+    var filtersEl = root.querySelector("[data-tsp-filters]");
+    var noResultsEl = root.querySelector("[data-tsp-no-results]");
+    var seeMoreUrl = root.getAttribute("data-see-more-url") || "#";
+
+    if (!list) return;
+
+    var rows = Array.prototype.slice.call(list.querySelectorAll("[data-tsp-row]"));
+    if (!rows.length) return;
+
+    var chips = filtersEl
+      ? Array.prototype.slice.call(filtersEl.querySelectorAll(".tsp-chip"))
+      : [];
+
+    var state = {
+      query: "",
+      mode: "all" // all | instock | prebook | price-asc | price-desc
+    };
+
+    // Make every row navigate to the configured "see more" URL rather
+    // than each product's own page. Using JS (instead of a bare <a href>)
+    // keeps the whole row clickable while still supporting middle-click /
+    // cmd-click to open in a new tab via native anchor behaviour.
+    rows.forEach(function (row) {
+      row.setAttribute("href", seeMoreUrl);
+    });
+
+    function applyState() {
+      var query = state.query.trim().toLowerCase();
+      var visibleRows = [];
+
+      rows.forEach(function (row) {
+        var name = row.getAttribute("data-name") || "";
+        var status = row.getAttribute("data-status") || "";
+
+        var matchesQuery = query === "" || name.indexOf(query) !== -1;
+
+        var matchesMode = true;
+        if (state.mode === "instock") {
+          matchesMode = status === "instock";
+        } else if (state.mode === "prebook") {
+          matchesMode = status === "prebook";
+        }
+        // price-asc / price-desc / all -> no status filtering, just search
+
+        var visible = matchesQuery && matchesMode;
+        row.classList.toggle("tsp-is-hidden", !visible);
+        if (visible) visibleRows.push(row);
+      });
+
+      // Sorting: reorder only when a price sort mode is active, to avoid
+      // unnecessary DOM writes otherwise.
+      if (state.mode === "price-asc" || state.mode === "price-desc") {
+        var sorted = visibleRows.slice().sort(function (a, b) {
+          var priceA = parseFloat(a.getAttribute("data-price")) || 0;
+          var priceB = parseFloat(b.getAttribute("data-price")) || 0;
+          return state.mode === "price-asc" ? priceA - priceB : priceB - priceA;
+        });
+        sorted.forEach(function (row) {
+          list.appendChild(row);
+        });
+      }
+
+      if (noResultsEl) {
+        var hasVisible = visibleRows.length > 0;
+        noResultsEl.hidden = hasVisible;
+      }
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener("input", function (e) {
+        state.query = e.target.value || "";
+        applyState();
+      });
+    }
+
+    if (chips.length) {
+      chips.forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          chips.forEach(function (c) {
+            c.classList.remove("is-active");
+          });
+          chip.classList.add("is-active");
+          state.mode = chip.getAttribute("data-mode") || "all";
+          applyState();
+        });
+      });
+    }
+  }
+
+  function initAll() {
+    var roots = document.querySelectorAll("[data-tsp-root]");
+    roots.forEach(initTspSection);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAll);
+  } else {
+    initAll();
+  }
+
+  // Re-init when the section is loaded/reloaded inside the Shopify
+  // theme editor (e.g. after settings are changed).
+  document.addEventListener("shopify:section:load", function (event) {
+    var root = event.target.querySelector
+      ? event.target.querySelector("[data-tsp-root]")
+      : null;
+    if (root) initTspSection(root);
+  });
+})();
