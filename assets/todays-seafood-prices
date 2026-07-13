@@ -1,0 +1,507 @@
+/* ==========================================================================
+   Today's Seafood Prices — Premium Section Styles
+   Design language: deep ocean navy, gold accent, glass surfaces,
+   iOS-Settings-style compact rows. No cards, no tables, no gradients
+   as a base background.
+   ========================================================================== */
+
+.tsp {
+  --tsp-navy: #0E2541;
+  --tsp-navy-raised: #122c4c;
+  --tsp-glass: rgba(255, 255, 255, 0.05);
+  --tsp-glass-border: rgba(255, 255, 255, 0.10);
+  --tsp-hairline: rgba(255, 255, 255, 0.08);
+  --tsp-text: #F5F8FC;
+  --tsp-text-muted: rgba(245, 248, 252, 0.60);
+  --tsp-text-faint: rgba(245, 248, 252, 0.38);
+  --tsp-gold: #F9C74F;
+  --tsp-green: #34D399;
+  --tsp-red: #F87171;
+  --tsp-radius-lg: 20px;
+  --tsp-radius-md: 14px;
+  --tsp-radius-sm: 10px;
+
+  position: relative;
+  background: var(--tsp-navy);
+  color: var(--tsp-text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.tsp *,
+.tsp *::before,
+.tsp *::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   Ambient background — light rays, bubbles, fish, crab. Decorative only.
+   ========================================================================== */
+
+.tsp-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.tsp-ambient__rays {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  width: 140%;
+  height: 90%;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse 60% 45% at 50% 0%,
+    rgba(249, 199, 79, 0.06) 0%,
+    rgba(120, 180, 220, 0.04) 35%,
+    transparent 70%
+  );
+  animation: tsp-rays-drift 26s ease-in-out infinite;
+}
+
+@keyframes tsp-rays-drift {
+  0%, 100% { opacity: 0.7; transform: translateX(-50%) translateY(0); }
+  50% { opacity: 1; transform: translateX(-52%) translateY(12px); }
+}
+
+.tsp-bubble {
+  position: absolute;
+  bottom: -40px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  animation: tsp-bubble-rise linear infinite;
+}
+
+.tsp-bubble--1 { left: 8%;  width: 5px;  height: 5px;  animation-duration: 22s; animation-delay: 0s; }
+.tsp-bubble--2 { left: 22%; width: 8px;  height: 8px;  animation-duration: 28s; animation-delay: 4s; }
+.tsp-bubble--3 { left: 48%; width: 4px;  height: 4px;  animation-duration: 19s; animation-delay: 8s; }
+.tsp-bubble--4 { left: 74%; width: 7px;  height: 7px;  animation-duration: 25s; animation-delay: 2s; }
+.tsp-bubble--5 { left: 90%; width: 5px;  height: 5px;  animation-duration: 21s; animation-delay: 11s; }
+
+@keyframes tsp-bubble-rise {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  8%   { opacity: 0.5; }
+  92%  { opacity: 0.35; }
+  100% { transform: translateY(-720px) translateX(14px); opacity: 0; }
+}
+
+.tsp-fish {
+  position: absolute;
+  width: 46px;
+  height: auto;
+  color: rgba(255, 255, 255, 0.05);
+  opacity: 0.7;
+}
+
+.tsp-fish--1 { top: 18%; left: -60px; animation: tsp-fish-swim-right 48s linear infinite; }
+.tsp-fish--2 {
+  top: 62%;
+  right: -60px;
+  transform: scaleX(-1);
+  animation: tsp-fish-swim-left 56s linear infinite;
+  animation-delay: 6s;
+}
+
+@keyframes tsp-fish-swim-right {
+  0%   { transform: translateX(0) translateY(0); }
+  50%  { transform: translateX(calc(100vw + 120px)) translateY(-18px); }
+  50.01% { transform: translateX(calc(-100vw - 120px)) translateY(-18px); }
+  100% { transform: translateX(0) translateY(0); }
+}
+
+@keyframes tsp-fish-swim-left {
+  0%   { transform: scaleX(-1) translateX(0) translateY(0); }
+  50%  { transform: scaleX(-1) translateX(calc(-100vw - 120px)) translateY(14px); }
+  50.01% { transform: scaleX(-1) translateX(calc(100vw + 120px)) translateY(14px); }
+  100% { transform: scaleX(-1) translateX(0) translateY(0); }
+}
+
+.tsp-crab {
+  position: absolute;
+  bottom: 6%;
+  left: 6%;
+  width: 34px;
+  height: auto;
+  color: rgba(255, 255, 255, 0.045);
+  animation: tsp-crab-scuttle 34s ease-in-out infinite;
+}
+
+@keyframes tsp-crab-scuttle {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(40px); }
+  50%      { transform: translateX(40px) translateY(-2px); }
+  75%      { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tsp-ambient__rays,
+  .tsp-bubble,
+  .tsp-fish,
+  .tsp-crab {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 749px) {
+  .tsp-fish { width: 32px; }
+  .tsp-crab { width: 24px; }
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.tsp-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 24px 96px;
+}
+
+@media (max-width: 749px) {
+  .tsp-container {
+    padding: 64px 16px 56px;
+  }
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.tsp-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.tsp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--tsp-glass);
+  border: 1px solid var(--tsp-glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tsp-text-muted);
+  margin-bottom: 22px;
+}
+
+.tsp-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tsp-green);
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55);
+  animation: tsp-pulse 2.4s ease-out infinite;
+}
+
+@keyframes tsp-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45); }
+  70%  { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tsp-badge__dot { animation: none; }
+}
+
+.tsp-title {
+  font-size: 48px;
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  color: var(--tsp-text);
+}
+
+.tsp-subtitle {
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--tsp-text-muted);
+  margin: 0 0 14px;
+}
+
+.tsp-updated {
+  font-size: 13px;
+  color: var(--tsp-text-faint);
+  margin: 0;
+}
+
+.tsp-updated time {
+  color: var(--tsp-text-muted);
+  font-weight: 500;
+}
+
+@media (max-width: 749px) {
+  .tsp-title { font-size: 34px; }
+  .tsp-subtitle { font-size: 15px; }
+}
+
+/* ==========================================================================
+   Sticky controls — search + filter chips
+   ========================================================================== */
+
+.tsp-controls {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 14px 0;
+  margin: 0 -24px 8px;
+  padding-left: 24px;
+  padding-right: 24px;
+  background: rgba(14, 37, 65, 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+@media (max-width: 749px) {
+  .tsp-controls {
+    margin: 0 -16px 6px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+.tsp-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  border-radius: var(--tsp-radius-lg);
+  background: var(--tsp-glass);
+  border: 1px solid var(--tsp-glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  margin-bottom: 12px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.tsp-search:focus-within {
+  border-color: rgba(249, 199, 79, 0.45);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.tsp-search__icon {
+  width: 18px;
+  height: 18px;
+  margin-left: 18px;
+  color: var(--tsp-text-faint);
+  flex-shrink: 0;
+}
+
+.tsp-search__input {
+  flex: 1;
+  height: 100%;
+  padding: 0 18px 0 12px;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--tsp-text);
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.tsp-search__input::placeholder {
+  color: var(--tsp-text-faint);
+}
+
+.tsp-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2px;
+}
+
+.tsp-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.tsp-chip {
+  flex: 0 0 auto;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--tsp-glass);
+  border: 1px solid var(--tsp-glass-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--tsp-text-muted);
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tsp-chip:hover {
+  color: var(--tsp-text);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.tsp-chip:active {
+  transform: scale(0.96);
+}
+
+.tsp-chip.is-active {
+  background: var(--tsp-gold);
+  border-color: var(--tsp-gold);
+  color: #1a1204;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Product list — compact iOS-Settings-style rows
+   ========================================================================== */
+
+.tsp-list {
+  border-radius: var(--tsp-radius-lg);
+  background: var(--tsp-glass);
+  border: 1px solid var(--tsp-glass-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+  padding: 4px 8px;
+}
+
+.tsp-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 0 12px;
+  border-radius: var(--tsp-radius-md);
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--tsp-hairline);
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tsp-row:last-child {
+  border-bottom: none;
+}
+
+.tsp-row:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.tsp-row:active {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.tsp-row__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tsp-row__dot.is-available {
+  background: var(--tsp-green);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
+}
+
+.tsp-row__dot.is-unavailable {
+  background: var(--tsp-red);
+  box-shadow: 0 0 6px rgba(248, 113, 113, 0.45);
+}
+
+.tsp-row__info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tsp-row__name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--tsp-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tsp-row__variant {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--tsp-text-muted);
+}
+
+.tsp-row__price {
+  flex: 0 0 auto;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--tsp-gold);
+  white-space: nowrap;
+}
+
+.tsp-row__chevron {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 14px;
+  color: var(--tsp-text-faint);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.tsp-row:hover .tsp-row__chevron {
+  transform: scale(1.35) translateX(1px);
+  color: var(--tsp-text-muted);
+}
+
+.tsp-row.tsp-is-hidden {
+  display: none;
+}
+
+@media (max-width: 749px) {
+  .tsp-row__name { font-size: 16.5px; }
+  .tsp-row__price { font-size: 18px; }
+  .tsp-row { min-height: 68px; gap: 12px; }
+}
+
+/* Empty / no-results states */
+
+.tsp-empty,
+.tsp-no-results {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--tsp-text-muted);
+  font-size: 15px;
+  border-radius: var(--tsp-radius-lg);
+  background: var(--tsp-glass);
+  border: 1px solid var(--tsp-glass-border);
+}
+
+.tsp-no-results {
+  margin-top: 8px;
+}
+
+.tsp-no-results[hidden] {
+  display: none;
+}
+
+/* Keyboard accessibility */
+
+.tsp-row:focus-visible,
+.tsp-chip:focus-visible,
+.tsp-search__input:focus-visible {
+  outline: 2px solid var(--tsp-gold);
+  outline-offset: 2px;
+}
