@@ -21,7 +21,7 @@
       "type": "trusea-today-price",
       "name": "Today's Seafood Prices",
       "settings": {
-        "collection": "all-seafoods",
+        "collection": "limited-catch",
         "see_more_url": "https://truseafish.com/collections/limited-catch",
         "section_title": "Today's Seafood Prices",
         "section_subtitle": "Fresh Catch. Fair Price."
