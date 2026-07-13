@@ -43,11 +43,15 @@
               data-status="{% if is_available %}in-stock{% else %}prebook{% endif %}"
               data-price="{{ variant.price | divided_by: 100.0 }}"
             >
-              <span class="tsp-dot {% if is_available %}tsp-dot-green{% else %}tsp-dot-red{% endif %}"></span>
-              <span class="tsp-name">{{ product.title }}</span>
-              <span class="tsp-qty">{{ variant.title }}</span>
-              <span class="tsp-price">{{ variant.price | money_without_trailing_zeros }}</span>
-              <span class="tsp-chevron">&rsaquo;</span>
+              <span class="tsp-row-main">
+                <span class="tsp-dot {% if is_available %}tsp-dot-green{% else %}tsp-dot-red{% endif %}"></span>
+                <span class="tsp-name">{{ product.title }}</span>
+              </span>
+              <span class="tsp-row-meta">
+                <span class="tsp-qty">{{ variant.title }}</span>
+                <span class="tsp-price">{{ variant.price | money_without_trailing_zeros }}</span>
+                <span class="tsp-chevron">&rsaquo;</span>
+              </span>
             </a>
           {%- endfor -%}
         {%- else -%}
@@ -139,10 +143,11 @@
     cursor: pointer;
   }
 
-  #tsp-section-{{ section.id }} .tsp-filter-btn.is-active {
-    background-color: #0E2541;
-    color: #ffffff;
-    border-color: #0E2541;
+  #tsp-section-{{ section.id }} .tsp-filter-btn.is-active,
+  #tsp-section-{{ section.id }} button.tsp-filter-btn.is-active {
+    background-color: #0E2541 !important;
+    color: #ffffff !important;
+    border-color: #0E2541 !important;
   }
 
   #tsp-section-{{ section.id }} .tsp-list {
@@ -153,7 +158,9 @@
   #tsp-section-{{ section.id }} .tsp-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 10px;
     padding: 12px 4px;
     border-bottom: 1px solid #eeeeee;
     text-decoration: none;
@@ -162,6 +169,23 @@
 
   #tsp-section-{{ section.id }} .tsp-row:last-child {
     border-bottom: none;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-row-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 150px;
+    min-width: 0;
+  }
+
+  #tsp-section-{{ section.id }} .tsp-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding-left: 17px;
   }
 
   #tsp-section-{{ section.id }} .tsp-dot {
@@ -180,12 +204,11 @@
   }
 
   #tsp-section-{{ section.id }} .tsp-name {
-    flex: 1 1 auto;
     font-size: 14px;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
   }
 
   #tsp-section-{{ section.id }} .tsp-qty {
@@ -294,25 +317,26 @@
     }
 
     if (filterWrap) {
-      var buttons = Array.prototype.slice.call(filterWrap.querySelectorAll('.tsp-filter-btn'));
-      buttons.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var filter = btn.getAttribute('data-filter');
-          var sort = btn.getAttribute('data-sort');
+      filterWrap.addEventListener('click', function (e) {
+        var btn = e.target.closest('.tsp-filter-btn');
+        if (!btn || !filterWrap.contains(btn)) return;
 
-          if (filter) {
-            currentStatusFilter = filter;
-            buttons.forEach(function (b) {
-              if (b.hasAttribute('data-filter')) b.classList.remove('is-active');
-            });
-            btn.classList.add('is-active');
-            applyFilters();
-          }
+        var filter = btn.getAttribute('data-filter');
+        var sort = btn.getAttribute('data-sort');
 
-          if (sort) {
-            sortRows(sort);
-          }
-        });
+        if (filter) {
+          currentStatusFilter = filter;
+          var filterButtons = filterWrap.querySelectorAll('.tsp-filter-btn[data-filter]');
+          filterButtons.forEach(function (b) {
+            b.classList.remove('is-active');
+          });
+          btn.classList.add('is-active');
+          applyFilters();
+        }
+
+        if (sort) {
+          sortRows(sort);
+        }
       });
     }
   })();
