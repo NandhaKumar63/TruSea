@@ -79,16 +79,6 @@
           class=" is-empty"
         {% endif %}
       >
-        {%- comment -%} Prebook status marker – read by theme.liquid JS {%- endcomment -%}
-        {%- assign has_prebook = false -%}
-        {%- for item in cart.items -%}
-          {%- assign _tags = item.product.tags | join: ',' | downcase -%}
-          {%- if _tags contains 'prebook' or _tags contains 'pre-book' or _tags contains 'preorder' or _tags contains 'pre-order' -%}
-            {%- assign has_prebook = true -%}
-            {%- break -%}
-          {%- endif -%}
-        {%- endfor -%}
-        <div id="cart-preorder-status" data-has-preorder="{{ has_prebook }}" style="display:none;"></div>
         <form
           action="{{ routes.cart_url }}"
           id="CartDrawer-Form"
