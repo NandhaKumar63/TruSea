@@ -1,6 +1,6 @@
 /* =====================================================
    TruSea Theme Toggle
-   - Defaults to dark theme on first visit
+   - Defaults to light theme on first visit
    - Persists preference in localStorage
    - Applies data-theme on <html> before paint (see
      the inline script in theme.liquid <head>)
@@ -12,7 +12,7 @@
   const STORAGE_KEY = 'ts-theme';
   const DARK        = 'dark';
   const LIGHT       = 'light';
-  const DEFAULT     = DARK; // dark is the brand default
+  const DEFAULT     = LIGHT; // light is the brand default
 
   /**
    * Get stored preference, or return brand default.
