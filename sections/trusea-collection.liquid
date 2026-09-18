@@ -133,13 +133,16 @@
 /* Toolbar */
 .lc-coll-toolbar {
   position: sticky;
-  top: var(--header-height, 0);
-  z-index: 3; /* Stay above content but below drawers/modals */
+  top: 80px;
+  z-index: 50; /* Above product cards, below site header (1000) / drawers */
   background: var(--ts-bg-card);
   border-bottom: 1px solid var(--ts-border);
   margin-bottom: 24px;
   padding: 12px 0;
-  transition: top 0.3s ease;
+}
+.lc-coll-toolbar.is-stuck {
+  box-shadow: 0 8px 24px rgba(14, 37, 65, 0.10);
+  border-bottom-color: var(--ts-border-strong, var(--ts-border));
 }
 .lc-coll-toolbar__inner {
   display: flex;
@@ -160,7 +163,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 40px;
+  width: 28px;
   z-index: 2;
   pointer-events: none;
   transition: opacity 0.3s;
@@ -173,6 +176,9 @@
   right: 0;
   background: linear-gradient(to left, var(--ts-bg-card), transparent);
 }
+/* Hide the fade on the side that has no more content to scroll to */
+.lc-coll-filters-scroll-wrap.at-start::before { opacity: 0; }
+.lc-coll-filters-scroll-wrap.at-end::after { opacity: 0; }
 
 .lc-coll-filters {
   display: flex;
@@ -181,14 +187,25 @@
   scrollbar-width: none;
   width: 100%;
   white-space: nowrap;
-  -webkit-overflow-scrolling: touch; 
-  padding: 8px 0;
-  justify-content: center;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 4px;
+  scroll-padding-left: 4px;
+  scroll-padding-right: 4px;
+  justify-content: flex-start;
+}
+@media (min-width: 1024px) {
+  .lc-coll-filters {
+    justify-content: center;
+  }
+  .lc-coll-filters-scroll-wrap::before,
+  .lc-coll-filters-scroll-wrap::after {
+    display: none;
+  }
 }
 .lc-coll-filters::-webkit-scrollbar { display: none; }
 .lc-filter-pill {
   flex-shrink: 0; /* Prevent pills from squeezing */
-  padding: 6px 16px;
+  padding: 8px 18px;
   border-radius: 50px;
   border: 1.5px solid var(--ts-border);
   background: var(--ts-bg-raised);
@@ -198,6 +215,8 @@
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  scroll-snap-align: start;
 }
 .lc-filter-pill:hover { border-color: var(--ts-mint); color: var(--ts-mint); }
 .lc-filter-pill.active {
@@ -264,23 +283,25 @@
   .lc-coll-header { padding: 25px 0 15px; }
   
   .lc-coll-toolbar { 
+    top: 80px;
     margin-left: -20px; 
     margin-right: -20px; 
-    padding: 12px 20px;
+    padding: 10px 20px;
   }
   
   .lc-coll-toolbar__inner {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
   }
   
   .lc-coll-filters {
-    margin-right: -20px;
-    padding-right: 20px;
+    margin-right: 0;
+    padding: 8px 4px;
+    justify-content: flex-start;
   }
   
-  .lc-filter-pill { padding: 6px 14px; font-size: 11px; }
+  .lc-filter-pill { padding: 8px 16px; font-size: 12px; }
   
 }
 
@@ -575,7 +596,13 @@
     
     // Sync UI
     document.querySelectorAll('.lc-filter-pill').forEach(p => p.classList.remove('active'));
-    if (btn) btn.classList.add('active');
+    if (btn) {
+      btn.classList.add('active');
+      // Keep the tapped pill fully in view on mobile (fixes cut-off first pill)
+      try {
+        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      } catch (e) {}
+    }
     else {
       const activePill = document.querySelector(`.lc-filter-pill[data-view="${view}"]`);
       if (activePill) activePill.classList.add('active');
@@ -591,6 +618,54 @@
 
   // Run on init
   lcApplyView();
+})();
+
+/**
+ * ── Sticky filter-bar UX (mobile) ──
+ * - Toggles edge fades so the first/last pill is never dimmed when scrolled to an end
+ * - Adds shadow when the bar is stuck + keeps it below the fixed site header
+ */
+(function () {
+  var toolbar = document.querySelector('.lc-coll-toolbar');
+  var scroller = document.getElementById('lc-filters');
+  if (!toolbar || !scroller) return;
+  var wrap = scroller.closest('.lc-coll-filters-scroll-wrap') || scroller.parentElement;
+
+  function syncFades() {
+    try {
+      var maxScroll = scroller.scrollWidth - scroller.clientWidth;
+      if (maxScroll <= 4) {
+        wrap.classList.add('at-start', 'at-end');
+        return;
+      }
+      wrap.classList.toggle('at-start', scroller.scrollLeft <= 4);
+      wrap.classList.toggle('at-end', scroller.scrollLeft >= maxScroll - 4);
+    } catch (e) {}
+  }
+
+  function syncSticky() {
+    try {
+      // Stuck = toolbar's top edge has reached its sticky offset
+      var rect = toolbar.getBoundingClientRect();
+      var top = parseFloat(getComputedStyle(toolbar).top) || 0;
+      toolbar.classList.toggle('is-stuck', rect.top <= top + 1 && window.scrollY > 10);
+      // Keep the bar below the fixed site header (80px desktop/mobile)
+      var header = document.getElementById('ts-header');
+      if (header) {
+        var h = header.offsetHeight || 80;
+        var fixed = header.classList.contains('ts-is-fixed');
+        toolbar.style.top = fixed ? h + 'px' : '0px';
+      }
+    } catch (e) {}
+  }
+
+  scroller.addEventListener('scroll', syncFades, { passive: true });
+  window.addEventListener('scroll', syncSticky, { passive: true });
+  window.addEventListener('resize', function () { syncFades(); syncSticky(); });
+
+  syncFades();
+  syncSticky();
+  setTimeout(function () { syncFades(); syncSticky(); }, 500);
 })();
 </script>
 

@@ -7,6 +7,37 @@
     <meta name="theme-color" content="">
     <link rel="canonical" href="{{ canonical_url }}">
 
+    {%- comment -%}
+      TruSea: Landing redirect — visiting "/" goes to /collections/limited-catch.
+      Bypassed when user explicitly taps Home/logo nav (see footer script that
+      sets sessionStorage + ?show_home=1), and never in theme editor.
+    {%- endcomment -%}
+    {% if request.page_type == 'index' %}
+      <script>
+        (function () {
+          try {
+            if (window.Shopify && window.Shopify.designMode) return;
+            var path = window.location.pathname;
+            if (path !== '/' && path !== '/index' && path !== '/index/') return;
+            var params = new URLSearchParams(window.location.search);
+            if (params.has('show_home') || params.has('noredirect')) {
+              try {
+                sessionStorage.setItem('ts_allow_home', '1');
+              } catch (e) {}
+              try {
+                window.history.replaceState(null, '', '/' + window.location.hash);
+              } catch (e) {}
+              return;
+            }
+            try {
+              if (sessionStorage.getItem('ts_allow_home') === '1') return;
+            } catch (e) {}
+            window.location.replace('/collections/limited-catch');
+          } catch (e) {}
+        })();
+      </script>
+    {% endif %}
+
 
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -622,5 +653,63 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 })();
 </script>
 
-</body>
+<script>
+/**
+ * TruSea: Home-nav bypass for the "/" -> /collections/limited-catch redirect.
+ * - Any tap/click on a link pointing to the homepage sets a session flag and
+ *   carries ?show_home=1 so the homepage redirect script lets it through.
+ * - Covers header nav, mobile drawer, logo, and footer links, including
+ *   middle-click / open-in-new-tab via href rewriting.
+ */
+(function () {
+  function isHomeHref(href) {
+    if (!href) return false;
+    try {
+      var u = new URL(href, window.location.origin);
+      if (u.origin !== window.location.origin) return false;
+      return u.pathname === '/' || u.pathname === '/index' || u.pathname === '/index/';
+    } catch (e) {
+      return href === '/' || href === '/?show_home=1' || href === '/index';
+    }
+  }
+
+  function rewriteHomeLinks() {
+    try {
+      document.querySelectorAll('a[href]').forEach(function (a) {
+        var href = a.getAttribute('href');
+        if (!href) return;
+        if (href.indexOf('show_home') !== -1) return;
+        if (isHomeHref(href)) {
+          a.setAttribute('href', '/?show_home=1');
+        }
+      });
+    } catch (e) {}
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', rewriteHomeLinks);
+  } else {
+    rewriteHomeLinks();
+  }
+  setTimeout(rewriteHomeLinks, 1000);
+
+  document.addEventListener(
+    'click',
+    function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+      try {
+        if (isHomeHref(a.getAttribute('href') || a.href)) {
+          try {
+            sessionStorage.setItem('ts_allow_home', '1');
+          } catch (_) {}
+        }
+      } catch (_) {}
+    },
+    true
+  );
+})();
+</script>
+
+  </body>
 </html>
